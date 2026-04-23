@@ -1,0 +1,75 @@
+###
+### GEOG 515: Applied Spatial Data Science
+# Project: "Don't Let The Pigeon Drive The... Subway?" ----
+### Part 3: Mapping
+###
+### Haley Meyrowitz
+### Haley05@UNC.edu
+###
+### 02/16/2026
+###
+
+#----------------------------------------#
+# Project Description   ----
+#----------------------------------------#
+
+#### // This project will analyze spatial patterns of pigeon activity at New York City subway station entrances. Using wildlife observation data combined with MTA entrance locations the study will identify pigeon hotspots associated with increased pigeon presence.//
+
+
+#
+# Load Libraries ----
+#
+
+library(sf) ## spatial data (vector)
+library(tmap)       ## static maps
+
+#
+# Read Data ----
+#
+
+pigeon_311 <- st_read("../../Data/Cleaned/pigeon_311_unsanitary_preprocessed.gpkg")
+nyc_boroughs <- st_read("../../Data/Raw/nyc_borough_boundaries.gpkg")
+
+#
+# Project Layers ----
+#
+
+# NYC StatePlane Long Island (Feet): EPSG:2263
+nyc_crs <- 2263
+pigeon_311_proj <- st_transform(pigeon_311, nyc_crs)
+nyc_boroughs_proj <- st_transform(nyc_boroughs, nyc_crs)
+
+#
+# Map Data ----
+#
+
+# Map with tmap
+tmap_mode("plot")
+
+nyc_map <- 
+tm_shape(nyc_boroughs_proj) +
+  tm_polygons(
+    col = "boroname",      # color by borough
+    palette = "Set2",     # color scheme
+    border.col = "black",
+    lwd = 1,
+    title = "NYC Boroughs"
+  ) +
+  tm_shape(pigeon_311_proj) +
+  tm_dots(
+    size = 0.1,
+    col = "black",
+    alpha = 0.5
+  ) +
+  tm_layout(
+    title = "Unsanitary Pigeon Complaints by NYC Borough",
+    legend.outside = TRUE,
+    frame = FALSE
+  )
+
+tmap_save(
+  nyc_map,
+  filename = "../../Figures/pigeon_borough_map.png",
+  width = 1600,   # pixels
+  dpi = 144
+)

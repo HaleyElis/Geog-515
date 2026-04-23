@@ -1,0 +1,76 @@
+###
+### GEOG 515: Applied Spatial Data Science
+# Project: "Don't Let The Pigeon Drive The... Subway?" ----
+### Part 2: Wrangle
+###
+### Haley Meyrowitz
+### Haley05@UNC.edu
+###
+### 02/16/2026
+###
+
+#----------------------------------------#
+# Project Description   ----
+#----------------------------------------#
+
+#### // This project will analyze spatial patterns of pigeon activity at New York City subway station entrances. Using wildlife observation data combined with MTA entrance locations the study will identify pigeon hotspots associated with increased pigeon presence.//
+
+
+#
+# Load Libraries ----
+#
+
+library(sf) ## spatial data (vector)
+
+#
+# Read Data ----
+#
+pigeon_311_dl <- st_read("../../Data/Raw/pigeon_311_unsanitary.gpkg")
+
+# Check columns and data types
+glimpse(pigeon_311_dl)
+
+# Reorder columns
+pigeon_311 <- pigeon_311_dl[, c(
+  "unique_key",
+  "created_date",
+  "complaint_type",
+  "descriptor",
+  "incident_address",
+  "city",
+  "latitude",
+  "longitude",
+  "geom"
+)]
+
+# Convert latitude and longitude to numeric
+pigeon_311$latitude  <- as.numeric(pigeon_311$latitude)
+pigeon_311$longitude <- as.numeric(pigeon_311$longitude)
+
+# Make sure geom is the active geometry column
+pigeon_311 <- st_set_geometry(pigeon_311, "geom")
+
+# Remove empty geometry
+pigeon_311 <- pigeon_311[!st_is_empty(pigeon_311), ]
+
+# Write out a new GeoPackage
+out_gpkg <- "../../Data/Cleaned/pigeon_311_unsanitary_preprocessed.gpkg"
+
+
+st_write(
+  pigeon_311,
+  dsn = out_gpkg,
+  layer = "pigeon_311_unsanitary_preprocessed",
+  delete_dsn = TRUE
+)
+
+# Quick confirmation
+st_layers(out_gpkg)
+
+#----------------------------------------#
+# Data Description   ----
+#----------------------------------------#
+
+#### // The dataset consists of 7,037 point observations representing 311 service requests related to unsanitary pigeon conditions in New York City from 2020 to the present. Each record contains spatial coordinates (latitude/longitude), complaint descriptors, addresses, and timestamps. The data are stored as a vector point layer in a GeoPackage format using the WGS 84 geographic coordinate system. Spatial extent covers all five NYC boroughs. Initial exploration identified a small number of empty geometries and non-numeric coordinate fields, which were removed or corrected. The cleaned dataset provides a geocoded representation of reported human–pigeon conflict locations suitable for spatial hotspot and proximity analysis.//
+
+
